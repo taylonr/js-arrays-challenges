@@ -1,105 +1,111 @@
 const { assert } = require("chai");
 const fs = require("fs");
 
-const { financePerItem } = require("../inventory");
+const { financePerItemPerMonth } = require("../inventory");
 
 const isObject = (obj) =>
   typeof obj === "object" && obj !== null && !Array.isArray(obj);
 
-describe("financePerItem", () => {
+describe("Challenge 7", () => {
   let isObj = false;
-  const missingKeys = [];
-  let allObjects = false;
-  let validKeys = false;
+  const itemTypes = [];
+  let monthsPresent = false;
 
-  const result = financePerItem();
+  let result = financePerItemPerMonth();
 
-  it("Should return an object", () => {
+  it("Should return an array", () => {
     isObj = isObject(result);
 
     assert(isObj, "Make sure to return an object from the function");
   });
 
-  it("Should have a key for each type", () => {
+  it("Should have each item type", () => {
     if (!isObj) return;
 
-    if (!result.hasOwnProperty("boot")) {
-      missingKeys.push("boot");
-    }
+    const updateMissingTypes = (type) => {
+      if (!result.hasOwnProperty(type)) {
+        itemTypes.push(type);
+      }
+    };
 
-    if (!result.hasOwnProperty("kayak")) {
-      missingKeys.push("kayak");
-    }
-
-    if (!result.hasOwnProperty("sleepingBags")) {
-      missingKeys.push("sleepingBags");
-    }
-
-    if (!result.hasOwnProperty("tents")) {
-      missingKeys.push("tents");
-    }
-
-    if (!result.hasOwnProperty("shirts")) {
-      missingKeys.push("shirts");
-    }
-
-    if (!result.hasOwnProperty("backpacks")) {
-      missingKeys.push("backpacks");
-    }
+    updateMissingTypes("boot");
+    updateMissingTypes("kayak");
+    updateMissingTypes("tents");
+    updateMissingTypes("sleepingBags");
+    updateMissingTypes("shirts");
+    updateMissingTypes("backpacks");
 
     assert(
-      missingKeys.length === 0,
-      `The following item types were missing ${missingKeys.join(",")}`
+      itemTypes.length === 0,
+      `The following item types were missing; ${itemTypes.join(",")}`
     );
   });
 
-  it("Should have an object for each value", () => {
-    if (missingKeys.length) return;
+  it("Should contain each month for each item", () => {
+    if (itemTypes.length) return;
 
-    allObjects = Object.values(result).every((v) => isObject(v));
+    const monthNums = [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+    ];
+    const areEqual = (a, b) =>
+      a.length == b.length && a.every((v, i) => b.includes(v));
 
-    assert(allObjects, "Each field (e.g. boot) should be an object");
-  });
+    monthsPresent = Object.values(result).every((r) => {
+      return areEqual(monthNums, Object.keys(r));
+    });
 
-  it("Every value should have a revenue & profit key", () => {
-    if (!allObjects) return;
-
-    validKeys = Object.values(result).every(
-      (v) => v.hasOwnProperty("revenue") && v.hasOwnProperty("profit")
+    assert(
+      monthsPresent,
+      "Make sure all 12 months are included as keys on every object"
     );
-
-    assert(validKeys, "Each item type should have a revenue & profit property");
   });
 
-  it("Should have correct values", () => {
-    if (!validKeys) return;
+  it("Should have all the right values", () => {
+    if (!monthsPresent) return;
 
     const expectedResults = require("./results.json");
 
     const errors = [];
 
     Object.keys(result).forEach((key) => {
-      if (
-        Number(
-          Math.abs(result[key].revenue - expectedResults[key].revenue).toFixed(
-            2
-          )
-        ) > 0.01
-      ) {
-        errors.push(
-          `${key}.revenue, expected ${expectedResults[key].revenue} but got ${result[key].revenue}`
-        );
-      }
+      const actual = result[key];
 
-      if (
-        Number(
-          Math.abs(result[key].profit - expectedResults[key].profit).toFixed(2)
-        ) > 0.01
-      ) {
-        errors.push(
-          `${key}.profit, expected ${expectedResults[key].profit} but got ${result[key].profit}`
-        );
-      }
+      Object.keys(actual).forEach((k) => {
+        if (
+          Number(
+            Math.abs(
+              actual[k].revenue - expectedResults[key][k].revenue
+            ).toFixed(2)
+          ) > 0.01
+        ) {
+          errors.push(
+            `${key} - month ${k}.revenue, expected ${expectedResults[key][k].revenue} but got ${actual[k].revenue}`
+          );
+        }
+
+        if (
+          Number(
+            Math.abs(actual[k].profit - expectedResults[key][k].profit).toFixed(
+              2
+            )
+          ) > 0.01
+        ) {
+          errors.push(
+            `${key} - month ${k}.profit, expected ${expectedResults[key][k].profit} but got ${actual[k].profit}`
+          );
+        }
+      });
     });
 
     assert(errors.length === 0, `${errors.join("\n")}`);
