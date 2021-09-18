@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -w ./tests/challenge.test.js -R ./tests/simple-reporter.js"
+    "test": "mocha ./tests/challenge.test.js -R ./tests/simple-reporter.js",
+    "test:watch": "mocha -w ./tests/challenge.test.js -R ./tests/simple-reporter.js"
   },
   "author": "",
   "license": "ISC",
